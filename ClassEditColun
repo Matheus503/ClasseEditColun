@@ -5,6 +5,7 @@
 *----------------------------------------------------------------------*
 CLASS LCL_ZTREINAMENTO_ALV014 IMPLEMENTATION.
 
+" Seleção de dados Simples
   METHOD BUSCA_DADOS.
 
     SELECT CPF
@@ -51,7 +52,7 @@ CLASS LCL_ZTREINAMENTO_ALV014 IMPLEMENTATION.
 
     LOOP AT GT_SAIDA INTO LS_ZTREINAMENTO_09_DOWN.
 
-      CALL FUNCTION 'CONVERSION_EXIT_CPFBR_OUTPUT' "Funcao de mascara de CPF.
+      CALL FUNCTION 'CONVERSION_EXIT_CPFBR_OUTPUT' "Funcao de mascara de CPF para sair formatado no CSV.
         EXPORTING
           INPUT  = LS_ZTREINAMENTO_09_DOWN-CPF
         IMPORTING
@@ -61,8 +62,10 @@ CLASS LCL_ZTREINAMENTO_ALV014 IMPLEMENTATION.
       LS_TEMP-IDADE    = LS_ZTREINAMENTO_09_DOWN-IDADE.
       LS_TEMP-TRABALHO = LS_ZTREINAMENTO_09_DOWN-TRABALHO.
 
+" Formatando o Salario com ponto e virgula
       WRITE LS_ZTREINAMENTO_09_DOWN-SALARIO TO LS_TEMP-SALARIO.
-
+      
+" Removendo o espaço contido no campo
       CONDENSE LS_TEMP-SALARIO.
 
       LS_TEMP-CIDADE = LS_ZTREINAMENTO_09_DOWN-CIDADE.
@@ -74,7 +77,7 @@ CLASS LCL_ZTREINAMENTO_ALV014 IMPLEMENTATION.
       CLEAR: LS_ZTREINAMENTO_09_DOWN.
 
     ENDLOOP.
-    CALL FUNCTION 'SAP_CONVERT_TO_CSV_FORMAT'
+    CALL FUNCTION 'SAP_CONVERT_TO_CSV_FORMAT' " Funcao para Coneverter o Arquivo de entrada para um tipo "DATA: GT_ARQ      TYPE TRUXS_T_TEXT_DATA."
       TABLES
         I_TAB_SAP_DATA       = GT_TEMP
       CHANGING
@@ -83,7 +86,7 @@ CLASS LCL_ZTREINAMENTO_ALV014 IMPLEMENTATION.
         CONVERSION_FAILED    = 1
         OTHERS               = 2.
 
-    CALL METHOD CL_GUI_FRONTEND_SERVICES=>FILE_OPEN_DIALOG
+    CALL METHOD CL_GUI_FRONTEND_SERVICES=>FILE_OPEN_DIALOG " Funcao para abrir a tela de dialogo para selecionar o local para salvar
       EXPORTING
         WINDOW_TITLE      = 'Select File'
         DEFAULT_FILENAME  = ''
@@ -94,12 +97,12 @@ CLASS LCL_ZTREINAMENTO_ALV014 IMPLEMENTATION.
         RC                = GD_SUBRCEMP.
 
 
-    READ TABLE IT_TABEMP INTO DATA(LS_TABEMP) INDEX 1.
+    READ TABLE IT_TABEMP INTO DATA(LS_TABEMP) INDEX 1. 
     IF SY-SUBRC IS INITIAL.
       VL_FILENAME = LS_TABEMP-FILENAME && '.csv'.
     ENDIF.
 
-    CALL FUNCTION 'GUI_DOWNLOAD'
+    CALL FUNCTION 'GUI_DOWNLOAD' " Funcao para fazer o download realmente
       EXPORTING
         FILENAME                = VL_FILENAME
         FILETYPE                = 'ASC'
@@ -142,7 +145,7 @@ CLASS LCL_ALV IMPLEMENTATION.
     "Cria o GRID
     CREATE OBJECT G_GRID
       EXPORTING
-        I_PARENT = CL_GUI_CONTAINER=>DEFAULT_SCREEN.
+        I_PARENT = CL_GUI_CONTAINER=>DEFAULT_SCREEN. "Habilita a utilizacao da tela toda para o ALV
 
   ENDMETHOD.                    "create_objects
 
@@ -180,7 +183,7 @@ CLASS LCL_ALV IMPLEMENTATION.
           <FS_FIELDCAT>-SCRTEXT_L = 'CPF'.
           <FS_FIELDCAT>-SCRTEXT_M = 'CPF'.
         WHEN 'SALARIO'.
-          <FS_FIELDCAT>-EDIT = 'X'."Habilita edição na coluna
+          <FS_FIELDCAT>-EDIT = 'X'."Habilita edicao na coluna
       ENDCASE.
     ENDLOOP.
 
